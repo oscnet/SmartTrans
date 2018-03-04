@@ -1,10 +1,16 @@
+#!/usr/bin/env python
+#coding:utf-8
+
 from googletrans import Translator
 import codecs
+import sys
 
 translator = Translator()
 translate_batch_size = 50
 
-file_input="input.md";
+file_input=str(sys.argv[1]);
+print(file_input);
+
 file_output="output.md";
 
 def chunks(l, n):
@@ -17,7 +23,7 @@ def require_translate(content):
 with codecs.open(file_input,'r',encoding='utf8') as fi:
     content = fi.readlines()
     content = [x.strip() for x in content]
-    
+
     source_items = []
     translated_items = []
 
@@ -32,13 +38,13 @@ with codecs.open(file_input,'r',encoding='utf8') as fi:
         translations = translator.translate(source_item_chunk,src="auto", dest='zh-cn')
         for translation in translations:
             translated_items.append(translation.text.encode('utf-8'))
-        
+
     # write to output
     i = 0
-    with codecs.open(file_output,'w',encoding='utf-16') as fo:
+    with codecs.open(file_output,'w',encoding='utf-8') as fo:
         while i < len(source_items):
             fo.write(source_items[i].decode('utf-8').strip()+"\n")
-            
+
             if(require_translate(source_items[i])):
                 fo.write("\n") # extra line for markdown line break
                 fo.write(translated_items[i].decode('utf-8').strip()+"\n")

@@ -6,16 +6,21 @@ import codecs
 import sys
 import traceback
 
-translator = Translator()
+proxy = {
+    'http': 'http://127.0.0.1:1086',
+    'https': 'http://127.0.0.1:1086',
+}
 
-translator.translate('# this is a test')
+translator = Translator(proxies=proxy)
+
+# translator.translate('# this is a test')
 
 translate_batch_size = 50
 
-file_input = str(sys.argv[1]);
-print(file_input);
+file_input = str(sys.argv[1])
+print(file_input)
 
-file_output = "output.md";
+file_output = "output.md"
 
 
 def chunks(l, n):
@@ -24,7 +29,7 @@ def chunks(l, n):
 
 
 def require_translate(s):
-    return s and not s.startswith("[") and not s.startswith("!")
+    return s and not s.startswith("[") and not s.startswith("!") and not s.startswith("{")
 
 
 with codecs.open(file_input, 'r', encoding='utf8') as fi:
@@ -49,17 +54,16 @@ with codecs.open(file_input, 'r', encoding='utf8') as fi:
     with codecs.open(file_output, 'w', encoding='utf-8') as fo:
         for s in source_items:
             # do translate
-            try:
-                fo.write(s.strip() + "\n")
-                if (require_translate(s)):
+            fo.write(s.strip() + "\n")
+            if (require_translate(s)):
+                try:
                     t = translator.translate(s, src="en", dest='zh-cn')
-                    print('.')
+                    print('.', end='', flush=True)
                     fo.write("\n")  # extra line for markdown line break
-                    fo.write(t.text.strip() + "\n")
-            except Exception as e:
-                print(e)
-                traceback.print_exception(e)
-                continue
+                    fo.write(t.text.strip() + "\n\n")
+                except Exception as e:
+                    print('X', end='', flush=True)
+                    continue
         print('\n')
 
     print("Translated. Please check output.md!")
